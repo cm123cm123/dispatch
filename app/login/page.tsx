@@ -1,31 +1,36 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(() => {
     if (typeof window === 'undefined') return null
     const hash = new URLSearchParams(window.location.hash.slice(1))
     const code = hash.get('error_code')
-    if (code === 'otp_expired') return 'That login link has expired or already been used. Request a new one below.'
-    if (hash.get('error')) return 'Login link invalid. Please request a new one.'
+    if (code === 'otp_expired') return 'That login link has expired or already been used.'
+    if (hash.get('error')) return 'Login failed. Please try again.'
     return null
   })
 
-  async function sendMagicLink(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
+    setErrorMsg(null)
     const supabase = createClient()
-    await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    })
-    setSent(true)
-    setLoading(false)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) {
+      setErrorMsg(error.message)
+      setLoading(false)
+    } else {
+      router.push('/')
+      router.refresh()
+    }
   }
 
   return (
@@ -50,42 +55,50 @@ export default function LoginPage() {
           </div>
         )}
 
-        {sent ? (
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.6 }}>
-            <div style={{ fontSize: '28px', marginBottom: '12px' }}>📬</div>
-            Check your inbox — a login link was sent to{' '}
-            <strong style={{ color: 'var(--text)' }}>{email}</strong>
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: '14px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)', marginBottom: '5px' }}>
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              required
+              autoComplete="email"
+              className="form-input"
+              style={{ fontSize: '14px' }}
+            />
           </div>
-        ) : (
-          <form onSubmit={sendMagicLink}>
-            <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)', marginBottom: '5px' }}>
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                required
-                className="form-input"
-                style={{ fontSize: '14px' }}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: '100%', padding: '10px', background: 'var(--accent)', color: '#fff',
-                border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600,
-                cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
-                fontFamily: 'var(--font)',
-              }}
-            >
-              {loading ? 'Sending…' : 'Send login link'}
-            </button>
-          </form>
-        )}
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: 'var(--text-muted)', marginBottom: '5px' }}>
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              autoComplete="current-password"
+              className="form-input"
+              style={{ fontSize: '14px' }}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%', padding: '10px', background: 'var(--accent)', color: '#fff',
+              border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 600,
+              cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
+              fontFamily: 'var(--font)',
+            }}
+          >
+            {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+        </form>
       </div>
     </div>
   )
