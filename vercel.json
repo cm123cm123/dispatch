@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/scan-inbox",
+      "schedule": "0 22 * * *"
+    }
+  ]
+}

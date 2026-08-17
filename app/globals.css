@@ -1,26 +1,110 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #222534;
+  --surface3: #2a2e40;
+  --border: #2e3247;
+  --text: #e8eaf0;
+  --text-muted: #7a7f99;
+  --text-dim: #4a4f66;
+  --accent: #4f7ef8;
+  --accent-soft: rgba(79, 126, 248, 0.12);
+  --green: #3ecf8e;
+  --green-soft: rgba(62, 207, 142, 0.12);
+  --amber: #f5a623;
+  --amber-soft: rgba(245, 166, 35, 0.12);
+  --red: #ff5c5c;
+  --red-soft: rgba(255, 92, 92, 0.12);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.12);
+  --cyan: #22d3ee;
+  --cyan-soft: rgba(34, 211, 238, 0.12);
+  --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Category badges */
+.cat {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.2px; white-space: nowrap;
 }
+.cat-Campaigns   { background: var(--purple-soft); color: var(--purple); }
+.cat-Automations { background: var(--cyan-soft);   color: var(--cyan); }
+.cat-Stakeholder { background: var(--amber-soft);  color: var(--amber); }
+.cat-Projects    { background: var(--accent-soft); color: var(--accent); }
+.cat-AdHoc       { background: var(--surface3);    color: var(--text-muted); }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Status badges */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+.status-badge::before {
+  content: ''; width: 5px; height: 5px;
+  border-radius: 50%; background: currentColor; flex-shrink: 0;
+}
+.status-todo       { background: var(--surface3);    color: var(--text-muted); }
+.status-inprogress { background: var(--accent-soft); color: var(--accent); }
+.status-waiting    { background: var(--amber-soft);  color: var(--amber); }
+.status-done       { background: var(--green-soft);  color: var(--green); }
+.status-blocked    { background: var(--red-soft);    color: var(--red); }
+
+/* Risk tags */
+.risk-overdue {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 700;
+  background: var(--red-soft); color: var(--red);
+  border: 1px solid rgba(255, 92, 92, 0.3);
+}
+.risk-soon {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 700;
+  background: var(--amber-soft); color: var(--amber);
+  border: 1px solid rgba(245, 166, 35, 0.3);
+}
+.risk-ok { color: var(--text-muted); font-size: 12px; font-weight: 400; }
+
+/* Shared form inputs */
+.form-input, .form-select, .form-textarea {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 12px; color: var(--text);
+  font-size: 13px; font-family: var(--font); outline: none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-select option { background: var(--surface2); }
+
+/* Comms log */
+.comm-item { background: var(--surface2); border-radius: 6px; padding: 10px 12px; border-left: 3px solid var(--border); }
+.comm-item.email   { border-left-color: var(--accent); }
+.comm-item.note    { border-left-color: var(--green); }
+.comm-item.meeting { border-left-color: var(--purple); }
+.comm-type         { font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; font-size: 11px; }
+.comm-type.email   { color: var(--accent); }
+.comm-type.note    { color: var(--green); }
+.comm-type.meeting { color: var(--purple); }
+
+/* Chip filters */
+.chip {
+  padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  background: transparent; color: var(--text-muted); font-family: var(--font); transition: all 0.15s;
+}
+.chip:hover  { border-color: var(--accent); color: var(--text); }
+.chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+@media (max-width: 640px) {
+  .header-title { display: none; }
 }
