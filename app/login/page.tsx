@@ -7,6 +7,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    const hash = new URLSearchParams(window.location.hash.slice(1))
+    const code = hash.get('error_code')
+    if (code === 'otp_expired') return 'That login link has expired or already been used. Request a new one below.'
+    if (hash.get('error')) return 'Login link invalid. Please request a new one.'
+    return null
+  })
 
   async function sendMagicLink(e: React.FormEvent) {
     e.preventDefault()
@@ -35,6 +43,12 @@ export default function LoginPage() {
           </div>
           <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Task &amp; Comms Tracker</div>
         </div>
+
+        {errorMsg && (
+          <div style={{ marginBottom: '16px', padding: '10px 14px', background: 'var(--red-soft)', border: '1px solid rgba(255,92,92,0.3)', borderRadius: '6px', fontSize: '13px', color: 'var(--red)', lineHeight: 1.5 }}>
+            {errorMsg}
+          </div>
+        )}
 
         {sent ? (
           <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.6 }}>
