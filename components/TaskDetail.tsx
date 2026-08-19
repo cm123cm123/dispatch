@@ -10,16 +10,21 @@ interface Props {
   onClose: () => void
   onUpdateStatus: (id: string, status: string) => Promise<void>
   onUpdateDue: (id: string, due: string) => Promise<void>
+  onUpdateDescription: (id: string, description: string) => Promise<void>
   onAddComm: (taskId: string, type: string, body: string) => Promise<void>
   onDelete: (id: string) => Promise<void>
 }
 
-export default function TaskDetail({ task, comms, onClose, onUpdateStatus, onUpdateDue, onAddComm, onDelete }: Props) {
+export default function TaskDetail({ task, comms, onClose, onUpdateStatus, onUpdateDue, onUpdateDescription, onAddComm, onDelete }: Props) {
   const [commText, setCommText] = useState('')
   const [commType, setCommType] = useState<CommType>('note')
   const [loggingComm, setLoggingComm] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [editingDesc, setEditingDesc] = useState(false)
+  const [descDraft, setDescDraft] = useState(task.description ?? '')
+  const [savingDesc, setSavingDesc] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const descRef = useRef<HTMLTextAreaElement>(null)
   const risk = getRisk(task)
 
   useEffect(() => {
@@ -29,6 +34,17 @@ export default function TaskDetail({ task, comms, onClose, onUpdateStatus, onUpd
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  useEffect(() => {
+    if (editingDesc) descRef.current?.focus()
+  }, [editingDesc])
+
+  async function saveDesc() {
+    setSavingDesc(true)
+    await onUpdateDescription(task.id, descDraft)
+    setSavingDesc(false)
+    setEditingDesc(false)
+  }
 
   async function handleAddComm() {
     if (!commText.trim()) return
@@ -74,12 +90,49 @@ export default function TaskDetail({ task, comms, onClose, onUpdateStatus, onUpd
           </div>
 
           {/* Description */}
-          {task.description && (
-            <div style={{ marginBottom: '16px' }}>
-              <SectionTitle>Description</SectionTitle>
-              <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>{task.description}</div>
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <SectionTitle noMargin>Description</SectionTitle>
+              {!editingDesc && (
+                <button
+                  onClick={() => { setDescDraft(task.description ?? ''); setEditingDesc(true) }}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '11px', padding: '2px 6px', borderRadius: '4px' }}
+                >
+                  Edit
+                </button>
+              )}
             </div>
-          )}
+            {editingDesc ? (
+              <>
+                <textarea
+                  ref={descRef}
+                  className="form-textarea"
+                  value={descDraft}
+                  onChange={e => setDescDraft(e.target.value)}
+                  style={{ fontSize: '13px', minHeight: '80px' }}
+                />
+                <div style={{ display: 'flex', gap: '6px', marginTop: '6px' }}>
+                  <button
+                    onClick={saveDesc}
+                    disabled={savingDesc}
+                    style={{ padding: '5px 12px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '5px', fontSize: '12px', fontWeight: 500, cursor: savingDesc ? 'not-allowed' : 'pointer', fontFamily: 'var(--font)' }}
+                  >
+                    {savingDesc ? 'Saving…' : 'Save'}
+                  </button>
+                  <button
+                    onClick={() => setEditingDesc(false)}
+                    style={{ padding: '5px 12px', background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: '5px', fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font)' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+                {task.description || <span style={{ color: 'var(--text-dim)', fontStyle: 'italic' }}>No description yet. Click Edit to add one.</span>}
+              </div>
+            )}
+          </div>
 
           {/* Stakeholder + Due */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
@@ -134,7 +187,7 @@ export default function TaskDetail({ task, comms, onClose, onUpdateStatus, onUpd
                         <span style={{ fontSize: '10px', color: 'var(--accent)', marginLeft: 'auto' }}>auto</span>
                       )}
                     </div>
-                    <div style={{ fontSize: '13px', color: 'var(--text)', lineHeight: 1.5 }}>{c.body}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{c.body}</div>
                   </div>
                 ))
               )}
@@ -219,9 +272,9 @@ export default function TaskDetail({ task, comms, onClose, onUpdateStatus, onUpd
   )
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function SectionTitle({ children, noMargin }: { children: React.ReactNode; noMargin?: boolean }) {
   return (
-    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+    <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: noMargin ? 0 : '8px' }}>
       {children}
     </div>
   )

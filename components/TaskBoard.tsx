@@ -75,6 +75,11 @@ export default function TaskBoard() {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status: status as Task['status'] } : t))
   }
 
+  async function updateDescription(id: string, description: string) {
+    await supabase.from('tasks').update({ description: description || null }).eq('id', id)
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, description: description || null } : t))
+  }
+
   async function updateDue(id: string, due_date: string) {
     await supabase.from('tasks').update({ due_date: due_date || null }).eq('id', id)
     setTasks(prev => prev.map(t => t.id === id ? { ...t, due_date: due_date || null } : t))
@@ -165,6 +170,7 @@ export default function TaskBoard() {
           onClose={() => setSelectedTaskId(null)}
           onUpdateStatus={updateStatus}
           onUpdateDue={updateDue}
+          onUpdateDescription={updateDescription}
           onAddComm={addComm}
           onDelete={deleteTask}
         />
